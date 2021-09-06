@@ -1,0 +1,84 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+from eval import get_auc
+
+# resultdf is the output of `get_eval`
+
+def plot_result(resultdf, metrics=['positivity_rate_differences', 'tpr_differences', 'eqodds_differences'], title=None, size=None):
+
+  if "trial" not in resultdf.columns:
+    print("Expected multiple trials! Plotting for the single trial:")
+
+  for metric in metrics:
+    ax = sns.lineplot(x=resultdf.thresholds, y=np.abs(resultdf[metric]), label=metric)
+
+  plt.legend()
+  plt.ylim((0,1))
+  # hacky but works
+  ax.set(xlabel = "Threshold")
+  ax.set(ylabel = "")
+  if title:
+    if size:
+      plt.title(title, size=size)  
+    else:
+      plt.title(title)
+
+def plot_ROC_curve(resultdf):
+  
+  ax = sns.lineplot(x=resultdf.fpr_A, y=resultdf.tpr_A, label="ROC group A")
+  ax = sns.lineplot(x=resultdf.fpr_B, y=resultdf.tpr_B, label="ROC group B")
+
+  ax.set(xlabel="FPR")
+  ax.set(ylabel="TPR")
+
+  plt.legend()
+
+def plot_result_summary(resultdf, filename=None): 
+  plt.figure(figsize=(25, 10))
+  plt.subplot(2,3,1)
+  plot_ROC_curve(resultdf)
+  plt.subplot(2,3,2)
+  plot_result(resultdf)
+  plt.subplot(2,3,3)
+  plot_result(resultdf, ['acc_A', 'acc_B', 'acc_overall'])
+  plt.subplot(2,3,4)
+  plot_result(resultdf, ['selection_A', 'selection_B'])
+  plt.subplot(2,3,5)
+  plot_result(resultdf, ['tpr_A', 'tpr_B'])
+  plt.subplot(2,3,6)
+  plot_result(resultdf, ['fpr_A', 'fpr_B'])
+
+  if filename:
+    plt.savefig(filename + '.png')
+
+def lambda_aucs_abs(wts, filename=None): # FIG 2 
+  sns.lineplot(data=wts, x="adjust_weight", y=[0]*505, label="zero area between curves", linestyle='dashed', color='darkgray')
+  sns.lineplot(data=wts, x="adjust_weight", y="abs_pos", label="area between selection rate curves", color='indianred')
+  sns.lineplot(data=wts, x="adjust_weight", y="abs_tpr", label="area between TPR curves", color='mediumseagreen')
+  ax = sns.lineplot(data=wts, x="adjust_weight", y="abs_fpr", label="area between FPR curves", color='slateblue')
+
+  plt.rcParams["axes.labelsize"] = 13
+  plt.rcParams["axes.titlesize"] = 17
+  ax.set(xlabel="adjustment weight $\\lambda$")
+  ax.set(ylabel="Area between curves (absolute)")
+  ax.set(title="Absolute area between curves over $\\lambda$")
+
+  if filename:
+    plt.savefig(filename + 'auc_abs.png')
+
+def lambda_aucs_signed(wts, filename=None): # FIG 2 
+  sns.lineplot(data=wts, x="adjust_weight", y=[0]*505, label="zero area between curves", linestyle='dashed', color='darkgray')
+  sns.lineplot(data=wts, x="adjust_weight", y='positivity_rate_differences', label="area between selection rate curves", color='indianred')
+  sns.lineplot(data=wts, x="adjust_weight", y="tpr_differences", label="area between TPR curves", color='mediumseagreen')
+  ax = sns.lineplot(data=wts, x="adjust_weight", y="fpr_differences", label="area between FPR curves", color='slateblue')
+
+  plt.rcParams["axes.labelsize"] = 13
+  plt.rcParams["axes.titlesize"] = 17
+  ax.set(xlabel="adjustment weight $\\lambda$")
+  ax.set(ylabel="Area between curves (signed)")
+  ax.set(title="Signed area between curves over $\\lambda$")
+
+  if filename:
+    plt.savefig(filename + 'auc_signed.png')
