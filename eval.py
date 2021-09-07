@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 from fairlearn.metrics import selection_rate, true_positive_rate, false_positive_rate
 
@@ -91,3 +92,41 @@ def get_eval_single(labels, scores, groups):
                          "acc_B": accuracy_B,
                          "acc_overall": accuracies_overall
                         })
+
+def get_abs_ci(wts, colname): # for _overweights
+    if type(colname) == list:
+        sm = np.zeros([10, 101])
+        for col in colname: 
+            sm = sm + np.array([wts.loc[wts.trial == i][col] for i in range(10)])
+        tmp = np.array(np.argmin(sm, axis=1))/100
+    else:
+        tmp = np.array([np.argmin(wts.loc[wts.trial == i][colname]) for i in range(10)])/100
+    conf_int = stats.norm.interval(0.95, loc=np.mean(tmp), scale=np.std(tmp) / np.sqrt(10))
+    conf_int = (np.round(conf_int[0], 2), np.round(conf_int[1], 2))
+    return np.array(conf_int)
+
+def get_ci(tmp): # for lambdas
+    conf_int = stats.norm.interval(0.95, loc=np.mean(tmp), scale=np.std(tmp) / np.sqrt(10))
+    conf_int = (np.round(conf_int[0], 2), np.round(conf_int[1], 2))
+    return np.array(conf_int)
+
+
+def get_prob_lambda(adjs):
+    tpr_ests = []
+    fpr_ests = []
+
+    for i in range(10):
+        data = adjs.loc[adjs.trial == i]
+
+        tprdata = data.loc[data.label == 1]
+        tprnum = tprdata[tprdata["group"] == 1].score.mean() - tprdata[tprdata["group"] == 0].score.mean()
+        tprdem = tprdata[tprdata["group"] == 0].adjust.mean() - tprdata[tprdata["group"] == 1].adjust.mean()
+        tpr_ests.append(tprnum/tprdem)
+
+        fprdata = data.loc[data.label == 0]
+        fprnum = fprdata[fprdata["group"] == 1].score.mean() - fprdata[fprdata["group"] == 0].score.mean()
+        fprdem = fprdata[fprdata["group"] == 0].adjust.mean() - fprdata[fprdata["group"] == 1].adjust.mean()
+        fpr_ests.append(fprnum/fprdem)
+
+    return tpr_ests, fpr_ests
+    
