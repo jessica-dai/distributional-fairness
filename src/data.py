@@ -3,7 +3,8 @@ import pandas as pd
 from responsibly.dataset import COMPASDataset
 from responsibly.dataset import GermanDataset
 from responsibly.dataset import AdultDataset
-from sklearn.preprocessing import StandardScaler
+from responsibly.dataset import build_FICO_dataset
+
 
 def compas():
     # Get the whole dataset, already nicely filtered for us from this library
@@ -191,8 +192,43 @@ def one_hot(df, column, drop=True):
         df = df.drop([column], axis=1)
     return df
 
+def FicoDataset(n=100):
+    """
 
-#TODO: Is this what i want? not sure
+    :param n: dataset size
+    :return:
+    """
+    FICO = build_FICO_dataset()
+
+    #Gets the number of people to sample in each group, based on the propotion of each group in the FICO
+    #dataset
+    group_counts = np.random.multinomial(n, list(FICO["proportions"].values()), size=1).ravel()
+
+    #Get the probability that an individual does not default at each credit score for each group
+    group_perform = FICO["performance"].to_numpy().T
+
+    #Each PDF is the distribution of credit scores per group
+    group_pdfs = FICO["pdf"].to_numpy().T
+    group_scores = [np.random.multinomial(group_counts[i], group_pdfs[i], size=1).ravel() for i in
+                    range(len(group_counts))]
+    scores = np.arange(0, 100.5, .5)
+
+    #do the sampling and aggregate
+    rows = []
+    for i in range(len(group_scores)):
+        for j in range(len(group_scores[i])):
+            for num in range(group_scores[i][j]):
+                group = i
+                score = scores[j]
+                label = np.random.binomial(1, group_perform[i][j], size=1)
+
+                rows.append([group, score, label[0]])
+
+    data = pd.DataFrame(rows, columns=["group", "score", "label"])
+    return data
+
+
+    #TODO: Is this what i want? not sure
 # def write_compas():
 #     # Write to CSV file
 #     os.chdir("..")

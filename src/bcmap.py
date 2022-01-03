@@ -152,6 +152,8 @@ def barycenter(A, weights, bins, reg=1e-3, solver="exact_LP"):
         M = np.divide(M,M.max())
         bc_pdf = ot.lp.barycenter(A, M, weights, solver='interior-point', verbose=True)
     elif solver == "bregman":
+        weights = np.array(weights)
+        A = np.vstack([empiricalPDF(a, bins) for a in A]).T
         M = edm(bins)
         M = np.divide(M,M.max())
         bc_pdf = ot.bregman.barycenter(A, M, reg, weights)
@@ -211,11 +213,11 @@ def geometric_adjustment(train_df, test_df, sens_col, score_col, solver, bins, r
     repaired_dfs = []
     for i in range(len(test_groups)):
         test_group_df = test_groups[i].copy()
-        test_group_df["repaired_score"] = test_group_df["decile_score"].apply(
+        test_group_df["repaired_score"] = test_group_df[score_col].apply(
             func=transport,
-            args=(test_group_df["decile_score"].to_numpy(), bc, bins)
+            args=(test_group_df[score_col].to_numpy(), bc, bins)
         )
-        test_group_df["shift"] = test_group_df["repaired_score"] - test_group_df["decile_score"]
+        test_group_df["shift"] = test_group_df["repaired_score"] - test_group_df[score_col]
         repaired_dfs.append(test_group_df)
 
     new_repaired_df = pd.concat(repaired_dfs).copy()
