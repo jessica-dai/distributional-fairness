@@ -82,7 +82,6 @@ def lexicographicOptimizer(df, attr_col, score_col, shift_col, ep=1e-6):
             args=(worst_off, avg_score, avg_shift, alpha, ep),
             method='trust-constr',
             constraints=cons,
-            tol=1e-7,
             options={"disp": True}
         )
 
