@@ -2,6 +2,8 @@
 import data
 from bcmap import *
 import ot
+import seaborn as sns
+from lexi import lexicographicOptimizer
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -182,6 +184,50 @@ def demoGeometricRepairCompas():
     _ = [ax.legend() for ax in axs.flatten()]
     plt.show()
 
+def testFicoLex():
+    n = 1000
+
+    fico_df = data.FicoDataset(n=n)
+
+    bins = np.arange(0, 100.5, .5)
+
+    #Compute the barycenter of the distributions with the perscribed weights
+    repaired, bc = geometric_adjustment(train_df=fico_df,
+                                        test_df=fico_df,
+                                        sens_col="group",
+                                        score_col="score",
+                                        solver="bregman",
+                                        bins=bins,
+                                        return_barycenter=True)
 
 
-demoGeometricRepairCompas()
+    data_pos_label = repaired[repaired["label"] == 1].copy()
+
+    #repaired columns are called "lexi" and "maxin"
+    lex_df = lexicographicOptimizer(
+        df=data_pos_label,
+        attr_col="group",
+        score_col="score",
+        shift_col="shift"
+    )
+
+
+
+
+    f, axs = plt.subplots(3, 4, figsize=(8,6))
+    groups = [gb for gb in lex_df.groupby("group")]
+
+    for i in range(len(groups)):
+        uh, group = groups[i]
+        axs[0,i].hist(group["score"], density=True, label=uh)
+        axs[1,i].hist(group["maxmin"], density=True, label=uh)
+        axs[2,i].hist(group["lexi"], density=True, label=uh)
+
+    plt.show()
+
+
+
+
+
+
+testFicoLex()

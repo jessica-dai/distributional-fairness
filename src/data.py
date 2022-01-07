@@ -215,16 +215,19 @@ def FicoDataset(n=100):
 
     #do the sampling and aggregate
     rows = []
+    group_map = {0: "asian", 1: "black", 2: "hispanic", 3: "white"}
     for i in range(len(group_scores)):
         for j in range(len(group_scores[i])):
             for num in range(group_scores[i][j]):
-                group = i
+                group = group_map[i]
                 score = scores[j]
                 label = np.random.binomial(1, group_perform[i][j], size=1)
 
                 rows.append([group, score, label[0]])
 
     data = pd.DataFrame(rows, columns=["group", "score", "label"])
+
+
     return data
 
 
