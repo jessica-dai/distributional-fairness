@@ -1,9 +1,9 @@
 
-import data
-from bcmap import *
+import src.data_2 as data
+from src.bcmap import *
 import ot
 import seaborn as sns
-from lexi import lexicographicOptimizer
+from src.lexi import lexicographicOptimizer
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
