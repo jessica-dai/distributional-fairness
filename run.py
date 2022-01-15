@@ -7,7 +7,7 @@ from pandas.core.indexes import base
 
 from data import get_data
 from eval import get_eval_single, auc_result_summary
-from regression_wasserstein.regression_postprocess import f_postprocess_vectorized_adjustments
+from sens_bin.regression_postprocess import f_postprocess_vectorized_adjustments
 
 # OVER THRESHOLDS
 eval_columns = [
@@ -40,7 +40,8 @@ if __name__ == '__main__':
 
     print(args)
 
-    adjusts = pd.DataFrame(columns=['trial', 'adjust', 'score', 'label', 'group'])
+    train_adjusts = pd.DataFrame(columns=['trial', 'adjust', 'score', 'label', 'group'])
+    test_adjusts = pd.DataFrame(columns=['trial', 'adjust', 'score', 'label', 'group'])
 
     if args.baselines:
         baseline_evals = pd.DataFrame(columns=eval_columns + ["thresholds", "trial"])
@@ -63,35 +64,48 @@ if __name__ == '__main__':
         split_ind = int(len(probs)/2)
         if i == 0:
             print(split_ind, "examples in train and test")
+    
+        curr_trial = np.array([i]*len(probs))
+        # adjust = f_postprocess_vectorized_adjustments(train.score.values.copy(), test.score.values.copy(), train.group.values.copy(), test.group.values.copy())
+        # change made 01.22
+        adjust = f_postprocess_vectorized_adjustments(probs.iloc[:split_ind].score.values.copy(), probs.score.values.copy(), probs.iloc[:split_ind].group.values.copy(), probs.group.values.copy())
+        
+        probs['trial'] = curr_trial 
+        probs['adjust'] = adjust
+        
+        # train, test have trial & adjust info
         train = probs.iloc[:split_ind]
         test = probs.iloc[split_ind:]
-        curr_trial = np.array([i]*len(test))
-        adjust = f_postprocess_vectorized_adjustments(train.score.values.copy(), test.score.values.copy(), train.group.values.copy(), test.group.values.copy())
 
-        test['trial'] = curr_trial 
-        test['adjust'] = adjust
-        adjusts = adjusts.append(test, ignore_index=True)
+        # train_adjusts, test_adjusts are for saving to csvs
+        train_adjusts = train_adjusts.append(probs.iloc[:split_ind], ignore_index=True)
+        test_adjusts = test_adjusts.append(test, ignore_index=True)
 
-        if args.baselines:
+        if args.baselines: # rerun jan 22
             print("**Getting baseline and full evals**")
             curr_trial = np.array([i]*101)
             baseline = get_eval_single(test.label.values, test.score.values, test.group.values)
             baseline["trial"] = curr_trial
-            full = get_eval_single(test.label.values, test.score.values + adjust, test.group.values)
+            full = get_eval_single(test.label.values, test.score.values + test.adjust.values, test.group.values)
             full["trial"] = curr_trial
 
             baseline_evals = baseline_evals.append(baseline, ignore_index=True)
             fulladj_evals = fulladj_evals.append(full, ignore_index=True)
 
-        if args.lambdas:
+        if args.lambdas: # rerun jan 22
             print("**Varying values of lambda**")
+            # change made 01.22 - lambdas calculated with train data not test
             curr_trial = np.array([i]*101)
             weights = np.linspace(0,1,101)
             weightaucs = pd.DataFrame(columns= eval_columns + ['adjust_weight'])
             for weight in weights:
-                adjust_weighted = np.multiply(weight, adjust)
-                scores_weighted = test.copy()
-                scores_weighted['score'] = test.score.values + adjust_weighted
+
+                if weight*20 % 20 == 0:
+                    print("lambda=", weight)
+
+                adjust_weighted = np.multiply(weight, train.adjust.values)
+                scores_weighted = train.copy()
+                scores_weighted['score'] = train.score.values + adjust_weighted
 
                 res = get_eval_single(scores_weighted.label, scores_weighted.score, scores_weighted.group)
                 aucs = auc_result_summary(res)
@@ -107,4 +121,5 @@ if __name__ == '__main__':
     if args.lambdas:
         over_weights.to_csv("results/"+ args.data +"__overweights.csv", index=False)
 
-    adjusts.to_csv('results/' + args.data + "__adjustments.csv", index=False)
+    train_adjusts.to_csv('results/' + args.data + "__adjust_train.csv", index=False)
+    test_adjusts.to_csv('results/' + args.data + "__adjust_test.csv", index=False)
