@@ -28,6 +28,9 @@ def group_loss_(x, groups, g, t, fudge, ep):
 
 
 def lexicographicOptimizer(df, attr_col, score_col, shift_col, ep=1e-6):
+
+    df = df.copy().sort_values(by=attr_col) # added jess 1.14.22 - make group order deterministic
+
     group_shift = [d[1][shift_col].values.copy() for d in
                    df.groupby(attr_col)]  # collect all the scores for each group from the data
     avg_shift = np.array([shift.mean() for shift in group_shift])  # get average shift
@@ -41,13 +44,17 @@ def lexicographicOptimizer(df, attr_col, score_col, shift_col, ep=1e-6):
     I = np.identity(num_groups)
 
     #Compute group losses with no repair, ie barycenter pi=0 for all i
-
     #these are all iterates, this is their "initial" value
     group_losses = np.array([group_loss(np.zeros(num_groups), i, g=avg_score, t=avg_shift, ep=ep) for i in np.arange(num_groups)])
+    # compute group losses with full repair
+    full_losses = np.array([group_loss(np.ones(num_groups), i, g=avg_score, t=avg_shift, ep=ep) for i in np.arange(num_groups)])
     # Outermost loop for the number of groups that we have
     eta = []
-    groupwise_losses = []
     lambdas_rec = []
+    groupwise_losses = []
+
+    groupwise_losses.append(group_losses)
+    groupwise_losses.append(full_losses)
 
     for j in range(num_groups):
         # Step 1. set up constraints in this for loop
@@ -103,10 +110,12 @@ def lexicographicOptimizer(df, attr_col, score_col, shift_col, ep=1e-6):
         lambdas = res.x
         lambdas_rec.append(lambdas)
 
-
     group_map = {list(df.groupby(attr_col).groups.keys())[i] : i for i in np.arange(num_groups)}
-    df["lexi"] = df.apply(lambda x: x[score_col] + x[shift_col]*lambdas_rec[-1][group_map[x[attr_col]]], axis=1)
+
+    return np.array(lambdas_rec), group_map, np.array(groupwise_losses)
+
+    df["lexi  "] = df.apply(lambda x: x[score_col] + x[shift_col]*lambdas_rec[-1][group_map[x[attr_col]]], axis=1)
     df["maxmin"] = df.apply(lambda x: x[score_col] + x[shift_col]*lambdas_rec[-1][group_map[x[attr_col]]], axis=1)
 
-    return df.copy()
+    # return df.copy()
 

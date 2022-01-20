@@ -7,7 +7,7 @@ from pandas.core.indexes import base
 
 from data import get_data
 from eval import get_eval_single, auc_result_summary
-from sens_bin.regression_postprocess import f_postprocess_vectorized_adjustments
+from src.bin_postprocess import f_postprocess_vectorized_adjustments
 
 # OVER THRESHOLDS
 eval_columns = [

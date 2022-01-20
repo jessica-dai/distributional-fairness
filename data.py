@@ -26,7 +26,7 @@ def get_data(dataset, seed, verb):
         print("dataset typo?")
 
 def gen_taiwan_credit(seed=0, verb=False):
-    credit = pd.read_csv('data_raw/UCI_Credit_Card.csv') # 30k rows
+    credit = pd.read_csv('data/UCI_Credit_Card.csv') # 30k rows
 
     credit['EDUCATION'] = credit['EDUCATION'] < 2
     labels = credit['default.payment.next.month'].values
@@ -53,7 +53,7 @@ def gen_taiwan_credit(seed=0, verb=False):
     return ret
 
 def gen_german_probs(seed=0, verb=False, sens='age'):
-    german = pd.read_csv('data_raw/german.csv') # from friedler 2019 preprocessing
+    german = pd.read_csv('data/german.csv') # from friedler 2019 preprocessing
     german["age"] = np.array([1 if a == 'adult' else 0 for a in german.age]).astype(int)
     german['sex'] = np.array([1 if a == 'male' else 0 for a in german.sex]).astype(int)
     german['credit'] = np.array([1 if a == 2 else 0 for a in german.credit]).astype(int)
@@ -90,7 +90,7 @@ def gen_german_probs(seed=0, verb=False, sens='age'):
     return ret
 
 def gen_adult_probs(seed=0, verb=False, sens='sex'):
-    adult = pd.read_csv('data_raw/adult_numerical.csv') # from friedler 2019 preprocessing
+    adult = pd.read_csv('data/adult_numerical.csv') # from friedler 2019 preprocessing
     # dataset wrangling - total 30162 
     X = adult.drop(columns=['income-per-year', 'race-sex'])
     X['race'] = np.array([1 if a == 'White' else 0 for a in X.race])

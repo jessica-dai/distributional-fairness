@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-from responsibly.dataset import COMPASDataset
-from responsibly.dataset import GermanDataset
-from responsibly.dataset import AdultDataset
-from responsibly.dataset import build_FICO_dataset
+# from responsibly.dataset import COMPASDataset
+# from responsibly.dataset import GermanDataset
+# from responsibly.dataset import AdultDataset
+# from responsibly.dataset import build_FICO_dataset
 
 
 def compas():
@@ -198,7 +198,7 @@ def FicoDataset(n=100):
     :param n: dataset size
     :return:
     """
-    FICO = build_FICO_dataset()
+    FICO = pd.read_csv('data/fico.csv') # build_FICO_dataset()
 
     #Gets the number of people to sample in each group, based on the propotion of each group in the FICO
     #dataset

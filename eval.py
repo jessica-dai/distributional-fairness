@@ -21,6 +21,27 @@ def auc_result_summary(resultdf):
     aucs['abs_fpr'] = get_auc(0.01, np.abs(resultdf['fpr_differences'].values))
     return aucs
 
+def get_eval_group(labels, scores, groupname):
+    """
+    jess 1.14.22 - Written for lex eval 
+    """
+    pr = []
+    tpr = []
+    fpr = []
+
+    for threshold in bins:
+        preds = scores > threshold
+        pr.append(selection_rate(labels, preds))
+        tpr.append(true_positive_rate(labels, preds))
+        fpr.append(false_positive_rate(labels, preds))
+
+    return pd.DataFrame({
+        groupname + '_PR': pr,
+        groupname + '_TPR': tpr, 
+        groupname + '_FPR': fpr
+    })
+    
+
 def get_eval_single(labels, scores, groups):
     """
     For a single trial

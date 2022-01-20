@@ -1,6 +1,6 @@
 import data
 import numpy as np
-from src.bcmap import *
+from .bcmap import *
 
 from scipy.optimize import minimize
 from scipy.optimize import minimize_scalar
@@ -184,5 +184,28 @@ def main():
     print(res.x)
 
 
+def get_fpr(repaired_df, score_col, group_col, shift_col):
 
-main()
+    obj_fun_fpr = objective(df=repaired_df,
+                               score_col=score_col,
+                               group_col=group_col,
+                               shift_col=shift_col,
+                               bins = np.linspace(0, 1, 101),
+                               metrics=["FPR"],
+                               weights=[1])
+
+    return minimize_scalar(obj_fun_fpr, bounds=(0, 1.01), method='Golden').x
+
+def get_tpr(repaired_df, score_col, group_col, shift_col):
+
+    obj_fun_tpr = objective(df=repaired_df,
+                               score_col=score_col,
+                               group_col=group_col,
+                               shift_col=shift_col,
+                               bins = np.linspace(0, 1, 101),
+                               metrics=["TPR"],
+                               weights=[1])
+
+    return minimize_scalar(obj_fun_tpr, bounds=(0, 1.01), method='Golden').x   
+
+# main()

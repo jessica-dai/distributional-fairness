@@ -6,13 +6,15 @@ from eval import get_abs_ci
 
 # resultdf is the output of `get_eval`
 
-def plot_result(resultdf, metrics=['positivity_rate_differences', 'tpr_differences', 'eqodds_differences'], title=None, size=None):
+def plot_result(resultdf, metrics=['positivity_rate_differences', 'tpr_differences', 'eqodds_differences'], legend_map = None, title=None, size=None):
 
   if "trial" not in resultdf.columns:
     print("Expected multiple trials! Plotting for the single trial:")
 
   for metric in metrics:
-    ax = sns.lineplot(x=resultdf.thresholds, y=np.abs(resultdf[metric]), label=metric)
+    if legend_map is None:
+      legend_map[metric] = metric
+    ax = sns.lineplot(x=resultdf.thresholds, y=np.abs(resultdf[metric]), label=legend_map[metric])
 
   plt.legend()
   plt.ylim((0,1))
@@ -97,12 +99,21 @@ def lambda_acc(wts, filename=None):
 
   plt.savefig(filename + '_acc.png')
 
-def lambda_auc_full(wts, title=None):
-  sns.lineplot(data=wts, x="adjust_weight", y=[0]*1010, label="zero area between curves", linestyle='dashed', color='darkgray')
-  sns.lineplot(data=wts, x="adjust_weight", y="abs_pos", label="area between selection rate curves", color='indianred')
-  sns.lineplot(data=wts, x="adjust_weight", y="abs_tpr", label="area between TPR curves", color='mediumseagreen')
-  sns.lineplot(x=wts.adjust_weight, y=wts.abs_tpr + wts.abs_fpr, label="area between TPR & FPR curves", color='cadetblue')
-  ax = sns.lineplot(data=wts, x="adjust_weight", y="abs_fpr", label="area between FPR curves", color='slateblue')
+def lambda_auc_full(wts, title=None, hide_key=True):
+  if not hide_key:
+    sns.lineplot(data=wts, x="adjust_weight", y=[0]*1010, label="zero area between curves", linestyle='dashed', color='darkgray')
+    sns.lineplot(data=wts, x="adjust_weight", y="abs_pos", label="area between selection rate curves", color='indianred')
+    sns.lineplot(data=wts, x="adjust_weight", y="abs_tpr", label="area between TPR curves", color='mediumseagreen')
+    sns.lineplot(x=wts.adjust_weight, y=wts.abs_tpr + wts.abs_fpr, label="area between TPR & FPR curves", color='cadetblue')
+    ax = sns.lineplot(data=wts, x="adjust_weight", y="abs_fpr", label="area between FPR curves", color='slateblue')
+
+  else: # this is horrible but i gave up on fighting matplotlib
+    sns.lineplot(data=wts, x="adjust_weight", y=[0]*1010, linestyle='dashed', color='darkgray')
+    sns.lineplot(data=wts, x="adjust_weight", y="abs_pos", color='indianred')
+    sns.lineplot(data=wts, x="adjust_weight", y="abs_tpr", color='mediumseagreen')
+    sns.lineplot(x=wts.adjust_weight, y=wts.abs_tpr + wts.abs_fpr, color='cadetblue')
+    ax = sns.lineplot(data=wts, x="adjust_weight", y="abs_fpr", color='slateblue')
+
 
   tpr_ci = get_abs_ci(wts, 'abs_tpr')
   tpr = np.mean([wts.iloc[101*i + int(np.mean(tpr_ci)*100)]['abs_tpr'] for i in range(10)])

@@ -193,7 +193,7 @@ def geometric_adjustment(train_df, test_df, sens_col, score_col, solver, bins, r
     then the bins should be a list that looks like [1,2,...100]
     :param solver: the barycenter solver to be used
     :param return_barycenter: (bool)
-    :return: returns a data frame with a "shift" column and "repaired score" column
+    :return: returns a data frame with an "adjust" column and "repaired score" column
     """
     groups = [group[1] for group in train_df.groupby(by=sens_col)] #get dataframe groups
     samples = np.array([g[score_col].to_numpy() for g in groups]) #get the scores for each group
@@ -207,25 +207,33 @@ def geometric_adjustment(train_df, test_df, sens_col, score_col, solver, bins, r
                    reg=1e-3,
                    solver=solver)
 
+    # test_groups = [group[1] for group in test_df.groupby(by=sens_col)]
+    # repaired_dfs = []
+    # for i in range(len(test_groups)):
+    #     test_group_df = test_groups[i].copy()
+    #     test_group_df["repaired_score"] = test_group_df[score_col].apply(
+    #         func=transport,
+    #         args=(test_group_df[score_col].to_numpy(), bc, bins)
+    #     )
+    #     test_group_df["shift"] = test_group_df["repaired_score"] - test_group_df[score_col]
+    #     repaired_dfs.append(test_group_df)
 
-    test_groups = [group[1] for group in test_df.groupby(by=sens_col)]
+    # new_repaired_df = pd.concat(repaired_dfs).copy()
 
-    repaired_dfs = []
-    for i in range(len(test_groups)):
-        test_group_df = test_groups[i].copy()
-        test_group_df["repaired_score"] = test_group_df[score_col].apply(
-            func=transport,
-            args=(test_group_df[score_col].to_numpy(), bc, bins)
-        )
-        test_group_df["shift"] = test_group_df["repaired_score"] - test_group_df[score_col]
-        repaired_dfs.append(test_group_df)
+    # jess mods to preserve indices
+    df_repair = test_df.copy()
+    for group in test_df[sens_col].unique():
+        df_repair.loc[df_repair[sens_col] == group, "repaired_score"] = df_repair.loc[df_repair[sens_col] == group, score_col].apply(
+                        func=transport,
+                        args=(df_repair.loc[df_repair[sens_col] == group, score_col].to_numpy(), bc, bins)
+                    )
 
-    new_repaired_df = pd.concat(repaired_dfs).copy()
+    df_repair["adjust"] = df_repair["repaired_score"] - df_repair[score_col]
 
     if not return_barycenter:
-        return new_repaired_df
+        return df_repair
     else:
-        return new_repaired_df, bc
+        return df_repair, bc
 
 
 

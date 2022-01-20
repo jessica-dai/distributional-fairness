@@ -1,5 +1,5 @@
 
-import src.data_2 as data
+import data_2 as data
 from src.bcmap import *
 import ot
 import seaborn as sns
