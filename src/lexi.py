@@ -29,7 +29,7 @@ def group_loss_(x, groups, g, t, fudge, ep):
 
 def lexicographicOptimizer(df, attr_col, score_col, shift_col, ep=1e-6):
 
-    df = df.copy().sort_values(by=attr_col) # added jess 1.14.22 - make group order deterministic
+    df = df.copy().sort_values(by=attr_col) # added **** 1.14.22 - make group order deterministic
 
     group_shift = [d[1][shift_col].values.copy() for d in
                    df.groupby(attr_col)]  # collect all the scores for each group from the data

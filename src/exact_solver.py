@@ -2,7 +2,6 @@ import data
 import numpy as np
 from .bcmap import *
 
-from scipy.optimize import minimize
 from scipy.optimize import minimize_scalar
 
 

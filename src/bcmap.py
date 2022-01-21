@@ -122,7 +122,7 @@ def barycenter(A, weights, bins, reg=1e-3, solver="exact_LP"):
 
     assert np.abs(np.sum(weights) - 1) < 1e-6,  "Sum of weights must add to 1"
 
-    if solver == "kweku":
+    if solver == "anon": # *****
         CDFs = [empiricalCDF(sample,bins) for sample in A] #Get the CDFs for each sample
 
 
@@ -220,7 +220,7 @@ def geometric_adjustment(train_df, test_df, sens_col, score_col, solver, bins, r
 
     # new_repaired_df = pd.concat(repaired_dfs).copy()
 
-    # jess mods to preserve indices
+    # **** mods to preserve indices
     df_repair = test_df.copy()
     for group in test_df[sens_col].unique():
         df_repair.loc[df_repair[sens_col] == group, "repaired_score"] = df_repair.loc[df_repair[sens_col] == group, score_col].apply(

@@ -11,15 +11,18 @@ def plot_result(resultdf, metrics=['positivity_rate_differences', 'tpr_differenc
   if "trial" not in resultdf.columns:
     print("Expected multiple trials! Plotting for the single trial:")
 
+  legend_map = {} if legend_map is None else legend_map
   for metric in metrics:
-    if legend_map is None:
+    if len(legend_map.keys()) < len(metrics):
+      legend_map = {}
       legend_map[metric] = metric
     ax = sns.lineplot(x=resultdf.thresholds, y=np.abs(resultdf[metric]), label=legend_map[metric])
 
-  plt.legend()
+  plt.legend(fontsize=int(size*0.7))
   plt.ylim((0,1))
   # hacky but works
-  ax.set(xlabel = "Threshold")
+  # ax.set(xlabel = "Threshold")
+  ax.set_xlabel("Threshold", fontsize=int(size*0.7))
   ax.set(ylabel = "")
   if title:
     if size:

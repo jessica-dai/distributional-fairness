@@ -23,7 +23,7 @@ def auc_result_summary(resultdf):
 
 def get_eval_group(labels, scores, groupname):
     """
-    jess 1.14.22 - Written for lex eval 
+    **** 1.14.22 - Written for lex eval 
     """
     pr = []
     tpr = []

@@ -28,7 +28,7 @@ def f_postprocess_vectorized(YL, YT, SL, ST):
     
     ST = ST.astype(int)
     
-    # NEW JESSICA 09.01.21
+    # NEW **** 09.01.21
     YL = YL + np.random.uniform(size=len(YL))*0.05
     YT = YT + np.random.uniform(size=len(YT))*0.05  
     # train proper (we can save tmp1 artifact)
@@ -65,7 +65,7 @@ def f_postprocess_vectorized_adjustments(YL, YT, SL, ST):
     
     ST = ST.astype(int)
     
-    # NEW JESSICA 09.05.21
+    # NEW **** 09.05.21
     YL = YL + np.random.uniform(size=len(YL))*0.05
     YT = YT + np.random.uniform(size=len(YT))*0.05  
 
