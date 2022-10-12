@@ -1,35 +1,73 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
-from eval import get_abs_ci
+from eval_helpers import get_abs_ci
+
+metric_to_lambda = {
+    'selection' : ['full', 'orig'], 
+    'tpr' : ['tpr', 'orig'],
+    'fpr' : ['fpr', 'orig'],
+    'eqodds': ['eo_1', 'eo_2', 'orig']
+}
+metric_to_title = {
+    'selection': 'Pos. Rate',
+    'tpr': 'TPR', 
+    'fpr': 'FPR',
+    'eqodds': 'Eq. Odds', 
+    'orig': 'Uncorrected',
+    'eo_1': 'Eq. Odds', 
+    'full': 'Pos. Rate'
+}
+datasets = {
+    'adult_old': "Income (S)", 
+    'adult_new': "Income (R)", 
+    'taiwan': "Taiwan Credit", 
+    'public': "Public Coverage"
+}
+algos = {
+    'lr': "LR",
+    'svm': 'SVM', 
+    'rf': 'RF', 
+    'mlp': 'MLP'
+}
 
 # resultdf is the output of `get_eval`
 
-def plot_result(resultdf, metrics=['positivity_rate_differences', 'tpr_differences', 'eqodds_differences'], legend_map = None, title=None, size=None):
+def _plot_result(resultdf, 
+                metrics=['selection_A', 'selection_B'],
+                filters={}, # e.g. {'lambda': 'eo_1'}
+                legend_map={}, # e.g. {'selection_A': 'Positive Rate Group A'}
+                ylabel="",
+                title=None, size=15, filename=None):
 
   if "trial" not in resultdf.columns:
     print("Expected multiple trials! Plotting for the single trial:")
 
-  legend_map = {} if legend_map is None else legend_map
+  for flt in filters:
+    filtdf = resultdf.loc[resultdf[flt] == filters[flt]]
+
   for metric in metrics:
     if len(legend_map.keys()) < len(metrics):
-      legend_map = {}
-      legend_map[metric] = metric
-    ax = sns.lineplot(x=resultdf.thresholds, y=np.abs(resultdf[metric]), label=legend_map[metric])
+      legend_map[metric] = None 
+    ycol = np.abs(filtdf[metric])
+    ax = sns.lineplot(x=filtdf.thresholds, y=ycol, label=legend_map[metric], palette="cubehelix")
 
-  plt.legend(fontsize=int(size*0.7))
+  if legend_map[metrics[0]]: # hacky
+    plt.legend(fontsize=int(size*0.7))
   plt.ylim((0,1))
-  # hacky but works
-  # ax.set(xlabel = "Threshold")
   ax.set_xlabel("Threshold", fontsize=int(size*0.7))
-  ax.set(ylabel = "")
+  ax.set_ylabel(ylabel, fontsize=int(size*0.7))
   if title:
-    if size:
-      plt.title(title, size=size)  
-    else:
-      plt.title(title)
+    plt.title(title, size=size)  
 
+  if filename:
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0)
+
+  ax.clear()
+
+###### OLD BELOW 
 def plot_ROC_curve(resultdf):
   
   ax = sns.lineplot(x=resultdf.fpr_A, y=resultdf.tpr_A, label="ROC group A")
@@ -45,15 +83,15 @@ def plot_result_summary(resultdf, filename=None):
   plt.subplot(2,3,1)
   plot_ROC_curve(resultdf)
   plt.subplot(2,3,2)
-  plot_result(resultdf)
+  _plot_result(resultdf)
   plt.subplot(2,3,3)
-  plot_result(resultdf, ['acc_A', 'acc_B', 'acc_overall'])
+  _plot_result(resultdf, ['acc_A', 'acc_B', 'acc_overall'])
   plt.subplot(2,3,4)
-  plot_result(resultdf, ['selection_A', 'selection_B'])
+  _plot_result(resultdf, ['selection_A', 'selection_B'])
   plt.subplot(2,3,5)
-  plot_result(resultdf, ['tpr_A', 'tpr_B'])
+  _plot_result(resultdf, ['tpr_A', 'tpr_B'])
   plt.subplot(2,3,6)
-  plot_result(resultdf, ['fpr_A', 'fpr_B'])
+  _plot_result(resultdf, ['fpr_A', 'fpr_B'])
 
   if filename:
     plt.savefig(filename + '.png')
@@ -87,7 +125,6 @@ def lambda_aucs_signed(wts, filename=None): # FIG 2
 
   if filename:
     plt.savefig(filename + '_auc_signed.png')
-
 
 def lambda_acc(wts, filename=None):
   sns.lineplot(data=wts, x="adjust_weight", y="acc_overall", label="overall")
@@ -142,3 +179,49 @@ def lambda_auc_full(wts, title=None, hide_key=True):
     ax.set(title="Absolute area between curves over $\\lambda$")
   else:
     ax.set(title=title)
+
+if __name__ == '__main__':
+
+  for dataset in datasets:
+      print(" ========= ", dataset, " ========")
+      for alg in algos: 
+          print("   -- ", alg)
+          lambdadf = pd.read_csv('results/' + dataset + '_' + alg + '__lambdas.csv')
+          for metric in metric_to_lambda:
+              for correction in metric_to_lambda[metric]:
+                  filename = "plots/" + dataset + "/" + alg + '_' + metric + "_lmbd=" + correction + ".png"
+                  resultdf = pd.read_csv('results/' + dataset + "_" + alg + "__evalthresholds.csv")
+
+                  # get average best lambda, for title 
+                  if correction == 'orig':
+                    bestlambda = 0
+                  elif correction == 'full':
+                    bestlambda = 1
+                  else:
+                    bestlambda = round(np.mean(lambdadf[correction]), 2)
+                  plot_title = metric_to_title[metric] + ", " + correction # + " $\lambda$=" + str(bestlambda) 
+                  # plot_title = datasets[dataset] + " " + algos[alg] + " " + metric_to_title[metric] + ", " + correction + " $\lambda$="
+
+                  metrics = [metric + '_A', metric + '_B']
+
+                  # handle legends: remove for all except pos rates uncorrected, and change to actual demographic
+                  if (correction == 'orig') and (metric == 'selection'):
+                    if dataset == 'adult_old':
+                      legend_map = { metric + '_A': 'Male', 
+                                    metric + '_B': 'Female'}
+                    elif dataset == 'adult_new':
+                      legend_map = { metric + '_A': 'White', 
+                                    metric + '_B': 'Nonwhite'}
+                    else:
+                      legend_map = { metric + '_A': 'Group A', 
+                                  metric + '_B': 'Group B'}
+                  else:
+                    legend_map = {}
+
+                  _plot_result(resultdf, 
+                              metrics=metrics, 
+                              filters={'lambda': correction}, 
+                              title=plot_title, 
+                              legend_map=legend_map,
+                              ylabel=metric_to_title[metric],
+                              filename=filename)

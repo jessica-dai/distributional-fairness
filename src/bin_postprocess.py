@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 def f_err(pred_y, fair_y):
     return np.mean((pred_y - fair_y)**2)
