@@ -1,40 +1,21 @@
 # distributional-fairness
 
-## todos
+To reproduce figures and experiments:
+1. run `./run_initial.sh` (or for a single dataset/algorithm, `python run_initial.py` with requisite cli args). This calculates the barycenter adjustments and saves the resulting `.csv`s.
+2. run `./run_process.sh` (or for a single dataset/algorithm, `python run_process.py` with requisite cli args). This calculates $\lambda$s and evaluates distributional parity for each, and saves the resulting `.csv`s.
+3. run `plot.py` to generate plots illustrating distributional parity (figs 2 and 3). 
 
-currently we have two EO solvers that compute but give quite different answers. which one is right? 
-here's what we'll do: keep both of them for now, then just do the eval script for each, and keep whichever one performs better. yikes science but whatever right?! 
+To reproduce baselines: 
+1. in `fair_baselines` folder, run (e.g.) `feldman.py` to generate predicted probabilities with the corresponding fair baseline (+ any hp tuning) applied.
+2. generate plots using `baselines_overthresholds.ipynb`. 
 
-
-## notes on what's in here: 
-
-### run scripts
-- `run.py`: runs exp for binary sens attrs for any binary dataset in `data`
-
-### helper scripts 
-- `datasets.py`: get predicted probabilities (for binary sens attr datasets)
-- `eval_exp.py`: mainly `get_eval_single`, which gives results for all metrics over all thresholds at a single lambda. also has `get_prob_lambda`, which is probabilistic estimation of (binary) lambda. 
-- `plot.py`: source code to generate plots
+### helper scripts and files 
+- `datasets.py`: get predicted probabilities (for binary sens attr datasets) of a baseline algorithm
+- `eval_helpers.py`: mainly `get_eval_single`, which gives results for all metrics over all thresholds at a single lambda. also has `get_prob_lambda`, which is probabilistic estimation of (binary) lambda. 
 
 ### algorithm source (`src` folder)
 - `bcmap.py`: calculate adjustment to the barycenter (multi-group)
 - `bin_postprocess.py`: calculate adjustment to the barycenter (binary-group)
 - `exact_solver.py`: exact calculation for lambda (binary-group). only used in lambda plotting notebook
-
-### plotting notebooks
-- `plotting_single_adjust.ipynb`: plot overall results for binary-group scenario (fig 2)
-
-### multi stuff
-- `run_multi.py`: runs fico exp and finds lambdas. (fico features are hardcoded)
-- `plotting_nb.ipynb`: plot overall results for multi-group scenario (nb version of fig 1) (not used as of may '22)
-- `lexi.py`: lexi & maxmin implementation to optimize lambdas (multi-group)
-
-
-### old plotting notebooks
-- `plotting_lambdas.ipynb`: illustrate existence of a minimum over lambdas and lambda comparisons (not used as of may '22)
-- `plotting_single.ipynb`: plot metrics over thresholds for a single lambda (good for preliminaries/gut checking otherwise not used in paper)
-
-
-
 
 
