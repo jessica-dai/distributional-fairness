@@ -12,13 +12,19 @@ metric_to_lambda = {
     'eqodds': ['eo_1', 'eo_2', 'orig']
 }
 metric_to_title = {
-    'selection': 'Pos. Rate',
-    'tpr': 'TPR', 
+    'selection': 'Demographic Parity',
+    'tpr': 'Equal Opportunity', 
     'fpr': 'FPR',
-    'eqodds': 'Eq. Odds', 
-    'orig': 'Uncorrected',
-    'eo_1': 'Eq. Odds', 
-    'full': 'Pos. Rate'
+    'eqodds': 'Equalized Odds', 
+    'orig': 'Unrepaired',
+    'eo_1': 'Equalized Odds', 
+    'full': 'Full Repair'
+}
+metric_to_gamma = {
+  'selection': '$\gamma$ = PR',
+  'tpr': '$\gamma$ = TPR', 
+  'eqodds': '$\gamma$ = FNR + FPR',
+  'fpr': 'FPR'
 }
 datasets = {
     'adult_old': "Income (S)", 
@@ -40,31 +46,42 @@ def _plot_result(resultdf,
                 filters={}, # e.g. {'lambda': 'eo_1'}
                 legend_map={}, # e.g. {'selection_A': 'Positive Rate Group A'}
                 ylabel="",
-                title=None, size=15, filename=None):
+                title=None, size=20, filename=None):
 
   if "trial" not in resultdf.columns:
     print("Expected multiple trials! Plotting for the single trial:")
 
+  plt.figure(figsize=(10, 5))
   for flt in filters:
     filtdf = resultdf.loc[resultdf[flt] == filters[flt]]
 
+  colors = ["cornflowerblue", "firebrick"]
+  counter = 0
   for metric in metrics:
     if len(legend_map.keys()) < len(metrics):
       legend_map[metric] = None 
     ycol = np.abs(filtdf[metric])
-    ax = sns.lineplot(x=filtdf.thresholds, y=ycol, label=legend_map[metric], palette="cubehelix")
+    color = colors[counter] if counter < 2 else None
+    ax = sns.lineplot(x=filtdf.thresholds, y=ycol, label=legend_map[metric], color=color)
+    counter +=1 
 
   if legend_map[metrics[0]]: # hacky
-    plt.legend(fontsize=int(size*0.7))
+    plt.legend(fontsize=int(size*0.8))
   plt.ylim((0,1))
-  ax.set_xlabel("Threshold", fontsize=int(size*0.7))
-  ax.set_ylabel(ylabel, fontsize=int(size*0.7))
+  plt.xticks(fontsize=size*0.7)
+  plt.yticks(fontsize=size*0.7)
+  ax.set_xlabel(r'Threshold $\tau$', fontsize=int(size*0.9))
+  ax.set_ylabel(ylabel, fontsize=int(size*0.9))
+  ax.spines.top.set_visible(False)
+  ax.spines.right.set_visible(False)
+  
   if title:
     plt.title(title, size=size)  
 
   if filename:
-    plt.savefig(filename, bbox_inches='tight', pad_inches=0)
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0, format='pdf')
 
+  plt.close()
   ax.clear()
 
 ###### OLD BELOW 
@@ -189,18 +206,11 @@ if __name__ == '__main__':
           lambdadf = pd.read_csv('results/' + dataset + '_' + alg + '__lambdas.csv')
           for metric in metric_to_lambda:
               for correction in metric_to_lambda[metric]:
-                  filename = "plots/" + dataset + "/" + alg + '_' + metric + "_lmbd=" + correction + ".png"
+                  filename = "plots/" + dataset + "/" + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
                   resultdf = pd.read_csv('results/' + dataset + "_" + alg + "__evalthresholds.csv")
 
-                  # get average best lambda, for title 
-                  if correction == 'orig':
-                    bestlambda = 0
-                  elif correction == 'full':
-                    bestlambda = 1
-                  else:
-                    bestlambda = round(np.mean(lambdadf[correction]), 2)
-                  plot_title = metric_to_title[metric] + ", " + correction # + " $\lambda$=" + str(bestlambda) 
-                  # plot_title = datasets[dataset] + " " + algos[alg] + " " + metric_to_title[metric] + ", " + correction + " $\lambda$="
+                  repaired = 'Repaired' if correction != 'orig' else 'Unrepaired'
+                  plot_title = metric_to_title[metric] + ", " + repaired
 
                   metrics = [metric + '_A', metric + '_B']
 
@@ -211,7 +221,7 @@ if __name__ == '__main__':
                                     metric + '_B': 'Female'}
                     elif dataset == 'adult_new':
                       legend_map = { metric + '_A': 'White', 
-                                    metric + '_B': 'Nonwhite'}
+                                    metric + '_B': 'Non-White'}
                     else:
                       legend_map = { metric + '_A': 'Group A', 
                                   metric + '_B': 'Group B'}
@@ -222,6 +232,7 @@ if __name__ == '__main__':
                               metrics=metrics, 
                               filters={'lambda': correction}, 
                               title=plot_title, 
+                              size=35,
                               legend_map=legend_map,
-                              ylabel=metric_to_title[metric],
+                              ylabel=metric_to_gamma[metric],
                               filename=filename)
