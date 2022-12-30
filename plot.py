@@ -9,7 +9,8 @@ metric_to_lambda = {
     'selection' : ['full', 'orig'], 
     'tpr' : ['tpr', 'orig'],
     'fpr' : ['fpr', 'orig'],
-    'eqodds': ['eo_1', 'eo_2', 'orig']
+    # 'eqodds': ['eo_1', 'eo_2', 'orig']
+    'eqodds': ['eo_1', 'orig']
 }
 metric_to_title = {
     'selection': 'Demographic Parity',
@@ -206,7 +207,7 @@ if __name__ == '__main__':
           lambdadf = pd.read_csv('results/' + dataset + '_' + alg + '__lambdas.csv')
           for metric in metric_to_lambda:
               for correction in metric_to_lambda[metric]:
-                  filename = "plots/" + dataset + "/" + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
+                  filename = "plots/" + dataset + "/" + dataset + '_' + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
                   resultdf = pd.read_csv('results/' + dataset + "_" + alg + "__evalthresholds.csv")
 
                   repaired = 'Repaired' if correction != 'orig' else 'Unrepaired'
@@ -222,6 +223,12 @@ if __name__ == '__main__':
                     elif dataset == 'adult_new':
                       legend_map = { metric + '_A': 'White', 
                                     metric + '_B': 'Non-White'}
+                    elif dataset == 'public':
+                      legend_map = { metric + '_A': 'White', 
+                                    metric + '_B': 'Non-White'}  
+                    elif dataset == 'taiwan':
+                      legend_map = { metric + '_A': 'Higher Education', 
+                                    metric + '_B': 'Lower Education'}                      
                     else:
                       legend_map = { metric + '_A': 'Group A', 
                                   metric + '_B': 'Group B'}

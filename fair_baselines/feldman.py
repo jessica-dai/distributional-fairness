@@ -157,6 +157,6 @@ if __name__ == "__main__":
         bestlevels_all_trials = bestlevels_all_trials.append(bestlevels, ignore_index=True)
         overlevels_all_trials = overlevels_all_trials.append(all_levels, ignore_index=True)
 
-    scores_all_trials.to_csv(args.dataset + '_results/feldman__scores.csv', index=False)
-    bestlevels_all_trials.to_csv(args.dataset + '_results/feldman__bestlevels.csv', index=False)
-    overlevels_all_trials.to_csv(args.dataset + '_results/feldman__overlevels.csv', index=False)
+    scores_all_trials.to_csv(args.dataset + '_results/feldman_' + args.algo + '__scores.csv', index=False)
+    bestlevels_all_trials.to_csv(args.dataset + '_results/feldman_' + args.algo + '__bestlevels.csv', index=False)
+    overlevels_all_trials.to_csv(args.dataset + '_results/feldman_' + args.algo + '__overlevels.csv', index=False)
