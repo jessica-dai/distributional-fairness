@@ -40,7 +40,13 @@ def get_eval_single(labels, scores, groups, verb=False):
     groups = (np.array(groups) + 0.5).astype(int) # idk weird floating point stuff
 
     for threshold in thresholds:
-      preds = scores > threshold
+      preds = scores > threshold 
+
+      if len(preds[groups == 1]) == 0:
+        print(len(scores))
+        print(len(preds))
+        print(groups[:10])
+        print(preds[groups==1])
 
       selection_A.append(
           selection_rate(labels[groups == 1], preds[groups == 1])

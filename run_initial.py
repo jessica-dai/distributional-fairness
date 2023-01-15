@@ -34,6 +34,7 @@ if __name__ == '__main__':
     parser.add_argument("--data",default="adult_old",help="which dataset to use")
     parser.add_argument("--algo", default="rf", help="underlying model for generating probabilities")
     parser.add_argument("--trials", default="1", help="number of trials to run")
+    parser.add_argument("--savedir", default="results", help="where to save results")
     parser.add_argument("--baselines", action="store_true")
     parser.add_argument("--lambdas", action="store_true")
     args = parser.parse_args()
@@ -116,10 +117,10 @@ if __name__ == '__main__':
             over_weights = over_weights.append(weightaucs, ignore_index=True)
     
     if args.baselines:
-        baseline_evals.to_csv("results/"+ args.data + "_" + args.algo +"__baseline.csv", index=False)
-        fulladj_evals.to_csv("results/"+ args.data + "_" + args.algo +"__fulladj.csv", index=False)
+        baseline_evals.to_csv(args.savedir + '/' + args.data + "_" + args.algo +"__baseline.csv", index=False)
+        fulladj_evals.to_csv(args.savedir + '/'+ args.data + "_" + args.algo +"__fulladj.csv", index=False)
     if args.lambdas:
-        over_weights.to_csv("results/"+ args.data + "_" + args.algo +"__overweights.csv", index=False)
+        over_weights.to_csv(args.savedir + '/' + args.data + "_" + args.algo +"__overweights.csv", index=False)
 
-    train_adjusts.to_csv('results/' + args.data + "_" + args.algo + "__adjust_train.csv", index=False)
-    test_adjusts.to_csv('results/' + args.data + "_" + args.algo + "__adjust_test.csv", index=False)
+    train_adjusts.to_csv(args.savedir + '/' + args.data + "_" + args.algo + "__adjust_train.csv", index=False)
+    test_adjusts.to_csv(args.savedir + '/' + args.data + "_" + args.algo + "__adjust_test.csv", index=False)

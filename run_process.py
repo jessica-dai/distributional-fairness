@@ -25,10 +25,11 @@ if __name__ == '__main__':
     parser.add_argument("--data", default="adult_old")
     parser.add_argument("--algo", default="rf")
     parser.add_argument("--trials", default=1)
+    parser.add_argument("--savedir", default="results", help="where to save results")
     args = parser.parse_args()
 
-    train_df = pd.read_csv('results/' + args.data + '_' + args.algo + '__adjust_train.csv')
-    test_df = pd.read_csv('results/' + args.data + '_' + args.algo + '__adjust_test.csv')
+    train_df = pd.read_csv(args.savedir + '/' + args.data + '_' + args.algo + '__adjust_train.csv')
+    test_df = pd.read_csv(args.savedir + '/' + args.data + '_' + args.algo + '__adjust_test.csv')
 
     resultdf = pd.DataFrame(columns = ["thresholds",
                     "tpr_A",
@@ -74,6 +75,6 @@ if __name__ == '__main__':
 
             resultdf = pd.concat([resultdf, currres], ignore_index=True)
 
-    lambdadf.to_csv('results/' + args.data + '_' + args.algo + '__lambdas.csv', index=False)
-    resultdf.to_csv('results/' + args.data + '_' + args.algo + '__evalthresholds.csv', index=False)
+    lambdadf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__lambdas.csv', index=False)
+    resultdf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__evalthresholds.csv', index=False)
             

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import argparse 
+
 from eval_helpers import get_abs_ci
 
 metric_to_lambda = {
@@ -199,16 +201,20 @@ def lambda_auc_full(wts, title=None, hide_key=True):
     ax.set(title=title)
 
 if __name__ == '__main__':
+  
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--savedir", default="results", help="where to save results")
+  args = parser.parse_args()
 
   for dataset in datasets:
       print(" ========= ", dataset, " ========")
       for alg in algos: 
           print("   -- ", alg)
-          lambdadf = pd.read_csv('results/' + dataset + '_' + alg + '__lambdas.csv')
+          lambdadf = pd.read_csv(args.savedir + '/' + dataset + '_' + alg + '__lambdas.csv')
           for metric in metric_to_lambda:
               for correction in metric_to_lambda[metric]:
-                  filename = "plots/" + dataset + "/" + dataset + '_' + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
-                  resultdf = pd.read_csv('results/' + dataset + "_" + alg + "__evalthresholds.csv")
+                  filename = args.savedir + "_plots/" + dataset + "/" + dataset + '_' + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
+                  resultdf = pd.read_csv(args.savedir + '/' + dataset + "_" + alg + "__evalthresholds.csv")
 
                   repaired = 'Repaired' if correction != 'orig' else 'Unrepaired'
                   plot_title = metric_to_title[metric] + ", " + repaired
