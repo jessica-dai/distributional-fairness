@@ -32,8 +32,8 @@ metric_to_gamma = {
 datasets = {
     'adult_old': "Income (S)", 
     'adult_new': "Income (R)", 
-    'taiwan': "Taiwan Credit", 
-    'public': "Public Coverage"
+    # 'taiwan': "Taiwan Credit", 
+    # 'public': "Public Coverage"
 }
 algos = {
     'lr': "LR",
@@ -210,11 +210,11 @@ if __name__ == '__main__':
       print(" ========= ", dataset, " ========")
       for alg in algos: 
           print("   -- ", alg)
-          lambdadf = pd.read_csv(args.savedir + '/' + dataset + '_' + alg + '__lambdas.csv')
+          # lambdadf = pd.read_csv(args.savedir + '/' + dataset + '_' + alg + '__lambdas.csv')
           for metric in metric_to_lambda:
               for correction in metric_to_lambda[metric]:
                   filename = args.savedir + "_plots/" + dataset + "/" + dataset + '_' + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
-                  resultdf = pd.read_csv(args.savedir + '/' + dataset + "_" + alg + "__evalthresholds.csv")
+                  resultdf = pd.read_csv(args.savedir + '_results/' + dataset + "_" + alg + "__evalthresholds.csv")
 
                   repaired = 'Repaired' if correction != 'orig' else 'Unrepaired'
                   plot_title = metric_to_title[metric] + ", " + repaired

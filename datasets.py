@@ -14,8 +14,8 @@ from folktables import adult_filter, public_coverage_filter, ACSIncome, ACSPubli
 from aif360.datasets.adult_dataset import AdultDataset
 from aif360.datasets.binary_label_dataset import BinaryLabelDataset
 
-NEW_ADULT_SIZE = 4000 # used to be 30000
-OLD_ADULT_SIZE = 4000 # used to be 48842
+NEW_ADULT_SIZE = 5000 # used to be 30000
+OLD_ADULT_SIZE = 5000 # used to be 48842
 
 def get_data(dataset, seed, verb, algo="rf"):
     """
@@ -140,7 +140,7 @@ def gen_adult_probs(seed=0,verb=False, sens='sex', interv=None, algo='rf'):
 
     # scale
     scaler = MinMaxScaler(copy=False)
-    adult.features = scaler.fit_transform(adult.features[:OLD_ADULT_SIZE])
+    adult.features = scaler.fit_transform(adult.features[seed*OLD_ADULT_SIZE:(seed+1)*OLD_ADULT_SIZE])
 
     # return just the scaled and shuffled data if pre/inprocessing
     if interv == 'pre/in':
@@ -255,12 +255,12 @@ def gen_new_adult(seed, verb, task='income', interv=None, algo='rf'):
         elif task == 'public':
             filtered_df = public_coverage_filter(acs_data)[ACSPublicCoverage.features].apply(lambda x: np.nan_to_num(x, -1))
             filtered_df[ACSPublicCoverage.target] = ACSPublicCoverage.target_transform(filtered_df[ACSPublicCoverage.target]).astype(int)
-        bld = BinaryLabelDataset(df=filtered_df[:NEW_ADULT_SIZE], label_names=[tasks[task].target], protected_attribute_names=[tasks[task].group])
+        bld = BinaryLabelDataset(df=filtered_df[seed*NEW_ADULT_SIZE:(seed+1)*NEW_ADULT_SIZE], label_names=[tasks[task].target], protected_attribute_names=[tasks[task].group])
         return bld.split(1, shuffle=True, seed=seed)[0]
 
     features, label, group = tasks[task].df_to_numpy(acs_data)
     X_train, X_test, y_train, y_test, group_train, group_test = train_test_split(
-    features[:NEW_ADULT_SIZE], label[:NEW_ADULT_SIZE], group[:NEW_ADULT_SIZE], test_size=0.666666667, shuffle=True, random_state=seed)
+    features[seed*NEW_ADULT_SIZE:(seed+1)*NEW_ADULT_SIZE], label[seed*NEW_ADULT_SIZE:(seed+1)*NEW_ADULT_SIZE], group[seed*NEW_ADULT_SIZE:(seed+1)*NEW_ADULT_SIZE], test_size=0.666666667, shuffle=True, random_state=seed)
 
     if verb:
         print("train test splits made")

@@ -1,9 +1,9 @@
 #!/bin/bash
-for i in "adult_old" "adult_new" "public" "taiwan"
+for i in "adult_old" "adult_new" # "public" "taiwan"
 do
     for j in "lr" "rf" "svm" "mlp"  # algs
     do
         echo "====================== $i $j ======================"
-        python -W ignore run_process.py --data=$i --algo=$j --trials=10  --savedir="small_results"
+        python -W ignore run_process.py --data=$i --algo=$j --trials=5  --savedir="refactor_results"
     done
 done

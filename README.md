@@ -1,5 +1,11 @@
 # distributional-fairness
 
+Modification for new branch: 
+
+Instead of just sampling `ADULT_SIZE` from the full dataset randomly (with seed=trial), instead we divide the full dataset into 6, use the 6th to calculate lambdas, then apply them to trials 1-5
+
+For old branch: 
+
 To reproduce figures and experiments:
 1. run `./run_initial.sh` (or for a single dataset/algorithm, `python run_initial.py` with requisite cli args). This calculates the barycenter adjustments and saves the resulting `.csv`s.
 2. run `./run_process.sh` (or for a single dataset/algorithm, `python run_process.py` with requisite cli args). This calculates $\lambda$s and evaluates distributional parity for each, and saves the resulting `.csv`s.

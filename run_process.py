@@ -42,20 +42,16 @@ if __name__ == '__main__':
                     "lambda"
             ])
 
-    lambdadf = pd.DataFrame(columns=["trial", "tpr", "fpr", "eo_1", "eo_2"])
+    # lambdadf = pd.DataFrame(columns=["trial", "tpr", "fpr", "eo_1", "eo_2"])
+
+    # get and save lambdas per trial using the last-indexed trial
+    lambdatrain = train_df.loc[train_df.trial == int(args.trials)]
+    trial_lambdas = _get_lambdas(lambdatrain)
 
     for i in range(int(args.trials)):
 
         currtrain = train_df.loc[train_df.trial == i]
         currtest = test_df.loc[test_df.trial == i]
-
-        # get and save lambdas per trial using training data
-        trial_lambdas = _get_lambdas(currtrain)
-        currlambdas = pd.DataFrame({k : [trial_lambdas[k]] for k in ['tpr', 'fpr', 'eo_1', 'eo_2']})
-        currlambdas['trial'] = [i]
-        lambdadf = pd.concat([lambdadf, currlambdas], ignore_index=True)
-
-
 
         # apply lambdas to test data
         for lmbd in trial_lambdas: 
@@ -75,6 +71,6 @@ if __name__ == '__main__':
 
             resultdf = pd.concat([resultdf, currres], ignore_index=True)
 
-    lambdadf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__lambdas.csv', index=False)
+    pd.DataFrame(trial_lambdas, index=[0]).to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__lambdas.csv', index=False)
     resultdf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__evalthresholds.csv', index=False)
             
