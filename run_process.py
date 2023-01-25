@@ -41,7 +41,7 @@ if __name__ == '__main__':
                     "trial",
                     "lambda"
             ])
-
+    aucdf = pd.DataFrame(columns=['auc_roc_A', 'auc_roc_B', 'auc_roc_overall', 'trial', 'lambda'])
     lambdadf = pd.DataFrame(columns=["trial", "tpr", "fpr", "eo_1", "eo_2"])
 
     for i in range(int(args.trials)):
@@ -55,11 +55,9 @@ if __name__ == '__main__':
         currlambdas['trial'] = [i]
         lambdadf = pd.concat([lambdadf, currlambdas], ignore_index=True)
 
-
-
         # apply lambdas to test data
         for lmbd in trial_lambdas: 
-            curreval = get_eval_single(currtest.label, currtest.score + trial_lambdas[lmbd]*currtest.adjust, currtest.group)
+            curreval, curraucs = get_eval_single(currtest.label, currtest.score + trial_lambdas[lmbd]*currtest.adjust, currtest.group)
             currres = curreval[["thresholds",
                     "tpr_A",
                     "tpr_B",
@@ -73,8 +71,12 @@ if __name__ == '__main__':
             currres['lambda'] = lmbd 
             currres['trial'] = i 
 
+            curraucs['lambda'] = lmbd 
+            curraucs['trial'] = i 
+
             resultdf = pd.concat([resultdf, currres], ignore_index=True)
+            aucdf = pd.concat([aucdf, curraucs], ignore_index=True)
 
     lambdadf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__lambdas.csv', index=False)
     resultdf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__evalthresholds.csv', index=False)
-            
+    aucdf.to_csv(args.savedir + '/' + args.data + '_' + args.algo + '__aucrocs.csv', index=False)

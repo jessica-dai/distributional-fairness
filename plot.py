@@ -87,17 +87,43 @@ def _plot_result(resultdf,
   plt.close()
   ax.clear()
 
-###### OLD BELOW 
-def plot_ROC_curve(resultdf):
+def _plot_ROC_curve(resultdf,
+                    filters={},
+                    ab_labels =[], # this is so sus i'm sorry
+                    title=None, size=20, filename=None
+                  ):
+  """
+  this very much violates DRY. i'm sorry
+  """
+
+  plt.figure(figsize=(10,5))
+  for flt in filters:
+    filtdf = resultdf.loc[resultdf[flt] == filters[flt]]
+
+  # todo fix captions
+  ax = sns.lineplot(x=filtdf.fpr_A, y=filtdf.tpr_A, label=ab_labels[0], color="cornflowerblue")
+  ax = sns.lineplot(x=filtdf.fpr_B, y=filtdf.tpr_B, label=ab_labels[1], color="firebrick")
+
+  plt.legend(fontsize=int(size*0.8))
+  plt.xlim((0,1))
+  plt.ylim((0,1))
+  plt.xticks(fontsize=size*0.7)
+  plt.yticks(fontsize=size*0.7)
+  ax.set_xlabel(r'FPR', fontsize=int(size*0.9))
+  ax.set_ylabel(r'TPR', fontsize=int(size*0.9))
+  ax.spines.top.set_visible(False)
+  ax.spines.right.set_visible(False)
   
-  ax = sns.lineplot(x=resultdf.fpr_A, y=resultdf.tpr_A, label="ROC group A")
-  ax = sns.lineplot(x=resultdf.fpr_B, y=resultdf.tpr_B, label="ROC group B")
+  if title:
+    plt.title(title, size=size)  
 
-  ax.set(xlabel="FPR")
-  ax.set(ylabel="TPR")
+  if filename:
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0, format='pdf')
 
-  plt.legend()
+  plt.close()
+  ax.clear()
 
+###### OLD BELOW 
 def plot_result_summary(resultdf, filename=None): 
   plt.figure(figsize=(25, 10))
   plt.subplot(2,3,1)
@@ -211,9 +237,11 @@ if __name__ == '__main__':
       for alg in algos: 
           print("   -- ", alg)
           lambdadf = pd.read_csv(args.savedir + '/' + dataset + '_' + alg + '__lambdas.csv')
+          
+          # plot the paired curves for regular metrics
           for metric in metric_to_lambda:
               for correction in metric_to_lambda[metric]:
-                  filename = args.savedir + "_plots/" + dataset + "/" + dataset + '_' + alg + '_' + metric + "_lmbd=" + correction + ".pdf"
+                  filename = args.savedir + "_plots/" + dataset + "/" + dataset + '_' + alg + '_' + metric + "_lmbd=" + correction
                   resultdf = pd.read_csv(args.savedir + '/' + dataset + "_" + alg + "__evalthresholds.csv")
 
                   repaired = 'Repaired' if correction != 'orig' else 'Unrepaired'
@@ -248,4 +276,19 @@ if __name__ == '__main__':
                               size=35,
                               legend_map=legend_map,
                               ylabel=metric_to_gamma[metric],
-                              filename=filename)
+                              filename=filename + ".pdf")
+          
+                  # plot ROC
+                  if dataset == 'adult_old':
+                    ab_labels = ['Male', 'Female']
+                  elif dataset == 'adult_new':
+                    ab_labels = ['White', 'Non-White']
+                  roc_plot_title = 'ROC per Group, ' + repaired
+                  roc_plot_filename = filename + "_ROC.pdf"
+                  _plot_ROC_curve(resultdf, 
+                                  filters={'lambda': correction},
+                                  ab_labels = ab_labels,
+                                  title=roc_plot_title,
+                                  size=35,
+                                  filename=roc_plot_filename
+                                  )

@@ -14,8 +14,8 @@ from folktables import adult_filter, public_coverage_filter, ACSIncome, ACSPubli
 from aif360.datasets.adult_dataset import AdultDataset
 from aif360.datasets.binary_label_dataset import BinaryLabelDataset
 
-NEW_ADULT_SIZE = 4000 # used to be 30000
-OLD_ADULT_SIZE = 4000 # used to be 48842
+NEW_ADULT_SIZE = 5000 # used to be 30000
+OLD_ADULT_SIZE = 5000 # used to be 48842
 
 def get_data(dataset, seed, verb, algo="rf"):
     """

@@ -3,7 +3,7 @@ import pandas as pd
 from scipy import stats
 
 from fairlearn.metrics import selection_rate, true_positive_rate, false_positive_rate
-
+from sklearn.metrics import roc_auc_score # move this after refactor
 
 def get_auc(x_int, y):
     """
@@ -83,8 +83,8 @@ def get_eval_single(labels, scores, groups, verb=False):
     tpr_A = np.array(tpr_A)
     tpr_B = np.array(tpr_B)
     fpr_A = np.array(fpr_A)
-    fpr_b = np.array(fpr_B)
-    return pd.DataFrame({"thresholds":thresholds,
+    fpr_B = np.array(fpr_B)
+    return (pd.DataFrame({"thresholds":thresholds,
                          "positivity_rate_differences": selection_A - selection_B,
                          "tpr_differences": tpr_A - tpr_B,
                          "fpr_differences": fpr_A - fpr_B,
@@ -97,8 +97,14 @@ def get_eval_single(labels, scores, groups, verb=False):
                          "fpr_B": fpr_B,
                          "acc_A": accuracy_A,
                          "acc_B": accuracy_B,
-                         "acc_overall": accuracies_overall
-                        })
+                         "acc_overall": accuracies_overall,
+                        }),
+            pd.DataFrame({
+                "auc_roc_A": [roc_auc_score(labels[groups == 1], scores[groups == 1])],
+                "auc_roc_B": [roc_auc_score(labels[groups == 0], scores[groups == 0])],
+                "auc_roc_overall": [roc_auc_score(labels, scores)]
+            })
+    )
 
 def get_abs_ci(wts, colname): # for _overweights
     if type(colname) == list:
