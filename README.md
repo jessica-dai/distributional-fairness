@@ -10,7 +10,11 @@ To reproduce baselines:
 2. generate plots using `baselines_overthresholds.ipynb`. 
 
 ### helper scripts and files 
-- `datasets.py`: get predicted probabilities (for binary sens attr datasets) of a baseline algorithm
+- `datasets.py`: get predicted probabilities (for binary sens attr datasets) of a baseline algorithm. 
+  - To add a dataset, follow template in `get_new_adult()` to implement something similar (eg `get_<DATASET_NAME>()`). 
+  - This method should have a flag for `interv`, which will check if we are running a baseline fairness algorithm or just ours. 
+  - If `interv` is not `None`, then you should construct a `BinaryLabelDataset` (following AIF360 convention) and return it (see current L259). 
+  - The rest should be pretty similar to what's already in `get_new_adult()`, just make sure splits and sensitive features are set properly. 
 - `eval_helpers.py`: mainly `get_eval_single`, which gives results for all metrics over all thresholds at a single lambda. also has `get_prob_lambda`, which is probabilistic estimation of (binary) lambda. 
 
 ### algorithm source (`src` folder)
